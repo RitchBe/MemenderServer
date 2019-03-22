@@ -1,0 +1,35 @@
+{
+  "name": "memender",
+  "version": "0.0.1",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "author": "Ritchbe",
+  "license": "ISC",
+  "dependencies": {
+    "async": "^2.6.2",
+    "bcryptjs": "^2.4.3",
+    "body-parser": "^1.18.3",
+    "dotenv": "^7.0.0",
+    "eslint": "^5.15.3",
+    "express": "^4.16.4",
+    "express-rate-limit": "^3.4.0",
+    "helmet": "^3.16.0",
+    "helmet-csp": "^2.7.1",
+    "joi": "^14.3.1",
+    "jwt-simple": "^0.5.5",
+    "mongodb": "^3.1.13",
+    "morgan": "^1.9.1",
+    "response-time": "^2.3.2"
+  },
+  "devDependencies": {
+    "eslint": "^4.19.1",
+    "eslint-plugin-react": "^7.8.1",
+    "mocha": "^4.1.0",
+    "selenium-webdriver": "^3.6.0",
+    "supertest": "^3.0.0"
+  }
+}
