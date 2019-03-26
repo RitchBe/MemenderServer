@@ -6,6 +6,7 @@ describe("User cycle operations", function() {
     var token;
     var userId;
     var savedMemes;
+    var memeId;
     //wait for db to be up
     before(function(done) {
         setTimeout(function() {
@@ -105,12 +106,120 @@ describe("User cycle operations", function() {
                 done();
             });
         });
-        it("should delete a registered User", function (done) {
-            request.del("/api/users/" + userId)
-            .set('x-auth', token)
-            .end(function (err, res) {
-                assert.equal(res.status, 200);
-                done();
-            });
+    // it("should delete a registered User", function (done) {
+    //         request.del("/api/users/" + userId)
+    //         .set('x-auth', token)
+    //         .end(function (err, res) {
+    //             assert.equal(res.status, 200);
+    //             done();
+    //     });
+    // });
+
+
+    it("should create a memes", function (done) {
+        request.post("/api/memes/")
+        .set("x-auth", token)
+        .send({
+            url: "https://res.cloudinary.com/db7eqzno0/image/upload/v1552659966/Screenshot_20190219-213919__01_hnxuop.jpg",
+            upvote: 0,
+            downvote: 0,
+            ratio: 0,
+            total: 0,
+            date: Date.now(),
+        })
+
+        
+        .end(function(err, res) {
+            memeId = res.body._id
+     
+            assert.equal(res.status, 201);
+            done();
+        })
     });
+
+    it('should get all memes', function (done) {
+        request.get("/api/memes/")
+        .set("x-auth", token)
+        .end(function(err,res) {
+          
+            assert.equal(res.status, 200);
+            done();
+        })
+    })
+
+    it("should upvote a memes", function (done){
+        request.put('/api/memes/' + memeId + '/upvote')
+        .set("x-auth", token)
+        .send({memeId: memeId})
+        .end(function(err,res) {
+            assert.equal(res.status,200);
+            done();
+        })
+    })
+
+
+    it("should downvote a memes", function (done){
+        request.put('/api/memes/' + memeId + '/downvote')
+        .set("x-auth", token)
+        .send({memeId: memeId})
+        .end(function(err,res) {
+            assert.equal(res.status,200);
+            done();
+        })
+    })
+
+    it('should get all meme from user', function (done) {
+        request.get('/api/users/' + userId + '/memes')
+        .set("x-auth", token)
+        .end(function(err , res) {
+            assert.equal(res.status, 200);
+            done();
+        })
+    })
+
+    // it("should delete a user meme", function(done) {
+    //     request.del("/api/users/" + userId + "/memes/" + memeId)
+    //     .set("x-auth", token)
+    //     .end(function(err,res) {
+    //         assert.equal(res.status, 200);
+    //         done();
+    //     })
+    // })
+
+    it("should add a meme to the saved meme", function(done) {
+        request.post("/api/users/" + userId + '/savedmemes')
+        .set("x-auth" , token)
+        .send({
+            memeId: '5c9918c2550eea1fefbdaa16',
+            url: "https://res.cloudinary.com/db7eqzno0/image/upload/v1551441848/xmupejzuiomnijj9xbxw.jpg"
+        })
+        .end(function (err, res) {
+            assert.equal( res.status, 200);
+            done();
+        })
+    })
+
+    it('should get all saved meme from user', function (done) {
+        request.get('/api/users/' + userId + '/savedmemes')
+        .set("x-auth", token)
+        .end(function(err , res) {
+            console.log(res.body[0]);
+
+            assert.equal(res.status, 200);
+            done();
+        })
+    })
+
+    // it("should delete saved memes", function (done) {
+    //     request.del("/api/users/" + userId + "/savedmemes/5c9918c2550eea1fefbdaa16")
+    //     .set("x-auth", token)
+    //     .end(function (err, res) {
+    //         assert.equal(res.status, 200);
+    //         done();
+    //     })
+    // })
+
+
+
+
 });

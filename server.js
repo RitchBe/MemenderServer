@@ -53,13 +53,18 @@ app.get('/', function (req, res) {
 //for static content (html, spa, images etc)
 app.use(express.static(path.join(__dirname, "build")));
 
-var node2 = cp.fork('./worker/app_FORK.js', [], { execArgv: ['--inspect=9229'] });
+// var node2 = cp.fork('./worker/app_FORK.js', [], { execArgv: ['--inspect=9229'] });
 var node2 = cp.fork('./worker/app_FORK.js');
-node2.on('exit', function (code) {
-  console.log("Worker crashed and was restarted.", code);
-node2 = undefined;
-node2 = cp.fork('./worker/app_FORK.js');
+node2.on('message', (msg) => {
+  console.log('message from child', msg)
+
 });
+node2.send({hello: "world"})
+// node2.on('exit', function (code) {
+//   console.log("Worker crashed and was restarted.", code);
+// node2 = undefined;
+// node2 = cp.execFile('./worker/app_FORK.js');
+// });
 
 
 //CONNECTION TO DB
