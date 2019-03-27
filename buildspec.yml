@@ -10,7 +10,6 @@ phases:
     commands:
       - echo Build started on `date`
       - echo Performing Test
-      - npm test
   post_build:
     commands:
       - echo Final build, without devDependencies
