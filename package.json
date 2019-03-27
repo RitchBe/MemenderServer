@@ -15,7 +15,6 @@
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.18.3",
     "dotenv": "^7.0.0",
-    "eslint": "^5.15.3",
     "express": "^4.16.4",
     "express-rate-limit": "^3.4.0",
     "helmet": "^3.16.0",
