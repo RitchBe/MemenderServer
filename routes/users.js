@@ -12,7 +12,7 @@ var router = express.Router();
 router.post('/', function postUser(req, res, next) {
   var schema = {
     userId: joi.string().required(),
-    nickname: joi.string().alphanum().min(3).max(50).required(),
+    nickname: joi.string().min(3).max(50).required(),
     picture: joi.string().required()
   };
 
@@ -36,7 +36,6 @@ router.post('/', function postUser(req, res, next) {
         nickname: req.body.nickname,
         userId: req.body.userId,
         picture: req.body.picture,
-        passwordHash: null,
         date: Date.now(),
         completed: false,
         savedMemes: [],
@@ -46,11 +45,8 @@ router.post('/', function postUser(req, res, next) {
       };
 
       //crypted password
-      bcrypt.hash(req.body.password, 10, function getHash(err, hash) {
-        if (err) {
-          return next(err);
-        }
-        xferUser.passwordHash = hash;
+      
+    
         req.db.collection.insertOne(xferUser, function createUser(err, result) {
           if (err) {
             return next(err);
@@ -61,7 +57,7 @@ router.post('/', function postUser(req, res, next) {
       });
     });
   });
-});
+
 
 
 //delete user
