@@ -13,6 +13,7 @@ router.post('/', function postSession(req,res,next) {
   var schema = {
     email: joi.string().email().min(7).max(50).required(),
     password: joi.string().regex(/^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{7,15}$/).required()
+  
   };
 
   joi.validate(req.body,schema, function(err) {

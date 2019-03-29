@@ -11,9 +11,9 @@ var router = express.Router();
 //create a user
 router.post('/', function postUser(req, res, next) {
   var schema = {
-    displayName: joi.string().alphanum().min(3).max(50).required(),
-    email: joi.string().email().min(7).max(50).required(),
-    password: joi.string().regex(/^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{7,15}$/).required()
+    userId: joi.string().required(),
+    nickname: joi.string().alphanum().min(3).max(50).required(),
+    picture: joi.string().required()
   };
 
   joi.validate(req.body, schema, function(err, value) {
@@ -22,7 +22,7 @@ router.post('/', function postUser(req, res, next) {
     }
     req.db.collection.findOne({
       type: 'USER_TYPE',
-      email: req.body.email
+      userId: req.body.userId
     }, function(err, doc) {
       if (err) {
         return next(err);
@@ -33,8 +33,9 @@ router.post('/', function postUser(req, res, next) {
 
       var xferUser = {
         type: "USER_TYPE",
-        displayName: req.body.displayName,
-        email: req.body.email,
+        nickname: req.body.nickname,
+        userId: req.body.userId,
+        picture: req.body.picture,
         passwordHash: null,
         date: Date.now(),
         completed: false,
