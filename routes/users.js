@@ -11,7 +11,7 @@ var router = express.Router();
 //create a user
 router.post('/', function postUser(req, res, next) {
   var schema = {
-    userId: joi.string().required(),
+    userSub: joi.string().required(),
     nickname: joi.string().min(3).max(50).required(),
     picture: joi.string().required()
   };
@@ -22,7 +22,7 @@ router.post('/', function postUser(req, res, next) {
     }
     req.db.collection.findOne({
       type: 'USER_TYPE',
-      userId: req.body.userId
+      userSub: req.body.userSub
     }, function(err, doc) {
       if (err) {
         return next(err);
@@ -34,7 +34,7 @@ router.post('/', function postUser(req, res, next) {
       var xferUser = {
         type: "USER_TYPE",
         nickname: req.body.nickname,
-        userId: req.body.userId,
+        userSub: req.body.userSub,
         picture: req.body.picture,
         date: Date.now(),
         completed: false,
@@ -123,19 +123,20 @@ router.get('/:id', authHelper.checkAuth, function(req, res, next) {
 // })
 
 router.post('/:id/savedmemes', authHelper.checkAuth, function(req,res,next){
-  if (req.params.id != req.auth.userId) {
-    return next(new Error('Invalid request for saving memes'));
-  }
+  // if (req.params.id != req.auth.userId) {
+  //   return next(new Error('Invalid request for saving memes'));
+  // }
   var schema = {
     memeId: joi.string().max(100).required(),
-    url:joi.string().max(200).required()
+    url:joi.string().max(200).required(),
+    userSub: joi.string().max(200).required() 
 
   };
   joi.validate(req.body, schema, function(err) {
     if(err) {
       return next(err);
     };
-    req.db.collection.findOneAndUpdate({type: 'USER_TYPE', _id: ObjectId(req.auth.userId)},
+    req.db.collection.findOneAndUpdate({type: 'USER_TYPE', userSub: req.body.userSub},
     {$addToSet: { savedMemes: req.body}},
     {returnOriginal: true},
     function(err,result) {
@@ -181,17 +182,19 @@ router.delete('/:id/savedmemes/:sid', authHelper.checkAuth, function(req, res, n
 
 router.get("/:id/savedmemes" , authHelper.checkAuth, function(req, res, next) {
   var savedMemes;
-  if (req.params.id != req.auth.userId) {
-    return next(new Error('Invalid request to get memes'))
-  }
-  req.db.collection.findOne({type: 'USER_TYPE', _id: ObjectId(req.auth.userId)}, function(err, doc) {
-    if (err) return next(err);
-    savedMemes = doc.savedMemes
-    console.log(savedMemes)
-    res.status(200).json(savedMemes)
+  // var last_id = req.query.next;
+  // if (req.params.id != req.auth.userId) {
+  //   return next(new Error('Invalid request to get memes'))
+  // }
 
+    req.db.collection.findOne({type: 'USER_TYPE', userSub: req.params.id}, function(err, doc) {
+      if (err) return next(err);
+      savedMemes = doc.savedMemes
+      console.log(savedMemes)
+      res.status(200).json(savedMemes)
+    });
+  
 
-  });
   // req.db.findOne({type: 'MEME_TYPE', memeId: savedMemes}, function(err, meme) {
   //   if (err) return next(err);
   // })
@@ -200,21 +203,37 @@ router.get("/:id/savedmemes" , authHelper.checkAuth, function(req, res, next) {
 
 
 router.get('/:id/memes', authHelper.checkAuth, function(req, res, next) {
-  if (req.params.id != req.auth.userId) {
-    return next(new Error("Invalid request to get uploaded meme"))
+  // if (req.params.id != '5c9f5f8210252534264aef19') {
+  //   return next(new Error("Invalid request to get uploaded meme"))
+  // }
+   var last_id = req.query.next; 
+   console.log(req.query.next);
+   if (last_id) {
+    req.db.collection.find({type: "MEME_TYPE", userSub: req.params.id, _id: {'$gt': ObjectId(last_id)}}).limit(10).toArray(function(err,docs) {
+      if (err) return next(err);
+      res.status(200).json(docs)
+    })
+   } else {
+    req.db.collection.find({type: "MEME_TYPE", userSub: req.params.id}).limit(10).toArray(function(err,docs) {
+      if (err) return next(err);
+      res.status(200).json(docs)
+   })
   }
-  req.db.collection.find({type: "MEME_TYPE", userId:ObjectId(req.auth.userId)}).toArray(function(err,docs) {
-    if (err) return next(err);
-    res.status(200).json(docs)
-  })
-} )
+})
 
 
 
 router.delete('/:id/memes/:sid', authHelper.checkAuth, function(req, res, next) {
-  if (req.params.id != req.auth.userId) {
-    return next(new Error("Invalid request for deleting uploaded meme"))
-  }
+  req.db.collection.findOneAndDelete({type: "MEME_TYPE", _id: ObjectId(req.params.sid), userSub: req.params.id}, function(err, result){
+    if (err) {
+      console.log("POSSIBLE CONTENTION ERROR? err: " , err)
+      return next(err)
+    } else if (result.ok != 1) {
+      console.log("POSSIBLE CONTENTION ERROR? result: " , result)
+      return next(new Error("delete meme failure"))
+    }
+    res.status(200).json({msg: "memes Deleted"})
+  })
 })
 
 //   req.db.collection.findOneAndDelete({type: 'MEME_TYPE', _id: ObjectId(req.params.sid)}, function(err, result) {

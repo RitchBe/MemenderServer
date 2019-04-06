@@ -9,24 +9,20 @@ var ObjectId = require('mongodb').ObjectID;
 router.post('/', authHelper.checkAuth, function(req,res,next) {
   var schema = {
     url: joi.string().max(300).required(),
-    upvote: joi.number().required(),
-    downvote: joi.number().required(),
-    total: joi.number().required(),
-    date: joi.date().required(),
-    ratio: joi.number().max(100),
+    userSub: joi.string().max(300).required()
   };
 
   joi.validate(req.body, schema, function(err){
     if (err) return next(err);
     var xferMemes = {
       type: "MEME_TYPE",
-      userId: req.auth.userId,
       date: Date.now(),
       upvote: 0,
       downvote: 0,
       total: 0,
       ratio: 0,
-      url: req.body.url
+      url: req.body.url,
+      userSub: req.body.userSub
 
     };
     req.db.collection.insertOne(xferMemes,
@@ -39,10 +35,17 @@ router.post('/', authHelper.checkAuth, function(req,res,next) {
 
 
 router.get('/', authHelper.checkAuth, function(req,res,next){
-  req.db.collection.find({type: 'MEME_TYPE'}).toArray(function(err,docs) {
-    if (err) return next(err);
-    res.status(200).json(docs);
-  });
+  // req.db.collection.find({type: 'MEME_TYPE'}).toArray(function(err,docs) {
+  //   if (err) return next(err);
+  //   res.status(200).json(docs);
+  // });
+    req.db.collection.aggregate([
+      {$match: {type: "MEME_TYPE"}},
+      {$sample: {size: 5}}
+    ]).toArray(function(err, docs) {
+      if (err) return next(err);
+      res.status(200).json(docs)
+    })
 });
 
 router.delete('/:id', authHelper.checkAuth, function(req,res,next){
