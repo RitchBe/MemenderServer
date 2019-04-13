@@ -34,19 +34,81 @@ router.post('/', authHelper.checkAuth, function(req,res,next) {
 });
 
 
-router.get('/', authHelper.checkAuth, function(req,res,next){
+// function checkRelation(obj, data) {
+//   return data.findOne({type: "RELATION_TYPE", memeId: obj._id, userSub: obj.userSub }).then(function(relation) {
+//     if (relation) return true;
+//     return false;
+//   });
+// }
+
+
+router.get('/:id/bestofalltime', authHelper.checkAuth, function(req,res,next){
   // req.db.collection.find({type: 'MEME_TYPE'}).toArray(function(err,docs) {
   //   if (err) return next(err);
   //   res.status(200).json(docs);
   // });
+
     req.db.collection.aggregate([
       {$match: {type: "MEME_TYPE"}},
-      {$sample: {size: 5}}
-    ]).toArray(function(err, docs) {
+      {$sort: {upvote: -1, downvote: 1}},
+    ]).limit(100).toArray(function(err, docs) {
       if (err) return next(err);
       res.status(200).json(docs)
     })
 });
+
+
+
+router.get('/:id', authHelper.checkAuth, function(req,res,next){
+  // req.db.collection.find({type: 'MEME_TYPE'}).toArray(function(err,docs) {
+  //   if (err) return next(err);
+  //   res.status(200).json(docs);
+  // });
+      req.db.collection.aggregate([
+        {$match: {type: "MEME_TYPE", userChecked: {$in: [req.body.userSub]}}},
+        {$sample: {size: 5}},
+      ]).toArray(function(err, docs) {
+        if (err) return next(err); 
+
+        res.status(200).json(docs)
+          }) 
+
+        })
+
+
+
+
+
+router.get('/:id/monthlybest', authHelper.checkAuth, function(req,res,next){
+  // req.db.collection.find({type: 'MEME_TYPE'}).toArray(function(err,docs) {
+  //   if (err) return next(err);
+  //   res.status(200).json(docs);
+  // });
+
+    req.db.collection.aggregate([
+      {$match: {type: "MEME_TYPE", date: {$lt: new Date(), $gte: new Date(new Date().setDate(new Date().getDate()-31))}}},
+      {$sort: {upvote: -1, downvote: 1}},
+    ]).limit(50).toArray(function(err, docs) {
+      if (err) return next(err);
+      res.status(200).json(docs)
+    })
+});
+
+router.get('/:id/weeklybest', authHelper.checkAuth, function(req,res,next){
+  // req.db.collection.find({type: 'MEME_TYPE'}).toArray(function(err,docs) {
+  //   if (err) return next(err);
+  //   res.status(200).json(docs);
+  // });
+
+    req.db.collection.aggregate([
+      {$match: {type: "MEME_TYPE", date: {$lt: new Date(), $gte: new Date(new Date().setDate(new Date().getDate()-7))}}},
+      {$sort: {upvote: -1, downvote: 1}},
+    ]).limit(100).toArray(function(err, docs) {
+      if (err) return next(err);
+      res.status(200).json(docs)
+    })
+});
+
 
 router.delete('/:id', authHelper.checkAuth, function(req,res,next){
   req.db.collection.findOneAndDelete({type: "MEME_TYPE", _id: req.params.id}, function(err, result){
@@ -66,13 +128,15 @@ router.delete('/:id', authHelper.checkAuth, function(req,res,next){
 router.put('/:id/upvote', authHelper.checkAuth, function(req,res,next) {
   var schema = {
     memeId: joi.string().max(300).required(),
+    userSub: joi.string().max(300).required()
   };
 joi.validate(req.body, schema, function(err) {
   if(err) {
     return next(err)
   }
+
   req.db.collection.findOneAndUpdate({type:"MEME_TYPE", _id: ObjectId(req.params.id)},
-  {$inc: {upvote: 1, total: 1}},{returnOriginal: true},
+  {$inc: {upvote: 1, total: 1}, $push: {userChecked: req.body.userSub}},{returnOriginal: true},
   function(err,result) {
     if (err) {
       console.log("CONTENTION ERROR?"  ,err)
@@ -83,8 +147,33 @@ joi.validate(req.body, schema, function(err) {
     }
     res.status(200).json({msg: "Meme upvoted"})
   })
+
+
 })
 });
+
+router.post('/:id/createrelation', authHelper.checkAuth, function(req,res,next){
+  console.log('eeejjj')
+  var schema ={
+    memeId: joi.string().max(300).required(),
+    userSub: joi.string().max(300).required()
+  };
+
+  joi.validate(req.body, schema ,function(err) {
+    if (err) return next(err);
+    var xferRelations = {
+      type: 'RELATION_TYPE',
+      memeId: req.params.id,
+      userSub: req.body.userSub 
+    }
+  
+    req.db.collection.insertOne(xferRelations, function createRelation(err,result) {
+      if (err) return next(err);
+      res.status(201).json(result.ops[0])
+    })
+
+  })
+})
 
 router.put('/:id/downvote', authHelper.checkAuth, function(req,res,next) {
   var schema = {

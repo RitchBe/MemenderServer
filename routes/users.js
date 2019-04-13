@@ -154,12 +154,12 @@ router.post('/:id/savedmemes', authHelper.checkAuth, function(req,res,next){
 
 
 router.delete('/:id/savedmemes/:sid', authHelper.checkAuth, function(req, res, next) {
-  if (req.params.id != req.auth.userId) {
-    return next(new Error('Invalid request for saved meme deletions'))
-  }
+  // if (req.params.id != req.auth.userId) {
+  //   return next(new Error('Invalid request for saved meme deletions'))
+  // }
   req.db.collection.findOneAndUpdate({
       type: "USER_TYPE",
-      _id: ObjectId(req.auth.userId)
+      userSub: req.params.id
     }, {
       $pull: {
         savedMemes: {
@@ -207,16 +207,21 @@ router.get('/:id/memes', authHelper.checkAuth, function(req, res, next) {
   //   return next(new Error("Invalid request to get uploaded meme"))
   // }
    var last_id = req.query.next; 
+
    console.log(req.query.next);
    if (last_id) {
-    req.db.collection.find({type: "MEME_TYPE", userSub: req.params.id, _id: {'$gt': ObjectId(last_id)}}).limit(10).toArray(function(err,docs) {
+    req.db.collection.find({type: "MEME_TYPE", userSub: req.params.id, _id: {$gt: ObjectId(last_id)}}).limit(10).toArray(function(err,docs) {
       if (err) return next(err);
+      console.log(docs)
       res.status(200).json(docs)
+      return;
     })
    } else {
+     console.log('not here plasewe')
     req.db.collection.find({type: "MEME_TYPE", userSub: req.params.id}).limit(10).toArray(function(err,docs) {
       if (err) return next(err);
       res.status(200).json(docs)
+      return;
    })
   }
 })
