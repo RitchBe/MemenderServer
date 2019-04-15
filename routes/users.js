@@ -206,11 +206,11 @@ router.get('/:id/memes', authHelper.checkAuth, function(req, res, next) {
   // if (req.params.id != '5c9f5f8210252534264aef19') {
   //   return next(new Error("Invalid request to get uploaded meme"))
   // }
-   var last_id = req.query.next; 
+   var last_date = req.query.next; 
 
    console.log(req.query.next);
-   if (last_id) {
-    req.db.collection.find({type: "MEME_TYPE", userSub: req.params.id, _id: {$gt: ObjectId(last_id)}}).limit(10).toArray(function(err,docs) {
+   if (last_date) {
+    req.db.collection.find({type: "MEME_TYPE", userSub: req.params.id, date: {$gt: new Date(last_date.toString())}}).sort({date: 1}).limit(10).toArray(function(err,docs) {
       if (err) return next(err);
       console.log(docs)
       res.status(200).json(docs)
@@ -218,7 +218,7 @@ router.get('/:id/memes', authHelper.checkAuth, function(req, res, next) {
     })
    } else {
      console.log('not here plasewe')
-    req.db.collection.find({type: "MEME_TYPE", userSub: req.params.id}).limit(10).toArray(function(err,docs) {
+    req.db.collection.find({type: "MEME_TYPE", userSub: req.params.id}).sort({date: 1}).limit(10).toArray(function(err,docs) {
       if (err) return next(err);
       res.status(200).json(docs)
       return;
