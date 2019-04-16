@@ -129,7 +129,8 @@ router.post('/:id/savedmemes', authHelper.checkAuth, function(req,res,next){
   var schema = {
     memeId: joi.string().max(100).required(),
     url:joi.string().max(200).required(),
-    userSub: joi.string().max(200).required() 
+    userSub: joi.string().max(200).required(),
+    date: joi.date().required()
 
   };
   joi.validate(req.body, schema, function(err) {
@@ -137,7 +138,13 @@ router.post('/:id/savedmemes', authHelper.checkAuth, function(req,res,next){
       return next(err);
     };
     req.db.collection.findOneAndUpdate({type: 'USER_TYPE', userSub: req.body.userSub},
-    {$addToSet: { savedMemes: req.body}},
+    {$addToSet: { 
+      savedMemes: {
+        url: req.body.url,
+        memeId: req.body.memeId,
+        userSub: req.body.userSub,
+        date: new Date(req.body.date)
+      }}},
     {returnOriginal: true},
     function(err,result) {
       if (err) {
@@ -187,12 +194,30 @@ router.get("/:id/savedmemes" , authHelper.checkAuth, function(req, res, next) {
   //   return next(new Error('Invalid request to get memes'))
   // }
 
+  var next_page = req.query.next;
+  if (next_page) {
     req.db.collection.findOne({type: 'USER_TYPE', userSub: req.params.id}, function(err, doc) {
       if (err) return next(err);
-      savedMemes = doc.savedMemes
-      console.log(savedMemes)
-      res.status(200).json(savedMemes)
+      savedMemes = doc.savedMemes.sort({date:1}).slice(next_page + 1, next_page + 10);
+      res.status(200).json(savedMemes);
+      return;
+    })
+  } else {
+    req.db.collection.findOne({type: 'USER_TYPE', userSub: req.params.id}, function(err, doc) {
+      if (err) return next(err);
+      if (doc.savedMemes) {
+        savedMemes = doc.savedMemes.sort({date: 1}).slice(0,10)
+        console.log(savedMemes)
+        res.status(200).json(savedMemes)
+        return;
+      }
+      res.status(200)
+      return;
+
     });
+  }
+
+
   
 
   // req.db.findOne({type: 'MEME_TYPE', memeId: savedMemes}, function(err, meme) {
