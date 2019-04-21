@@ -7,6 +7,7 @@ var ObjectId = require('mongodb').ObjectID;
 var MongoClient = require('mongodb').MongoClient;
 var agenda = require('agenda')
 var globalNewsDoc;
+var urlExists = require('url-exists');
 
 //
 // MongoDB database connection initialization
@@ -53,3 +54,21 @@ setInterval(() => {
         });
     });
 }, 600000)
+
+// setInterval(()=> {
+//     console.log('deleting...')
+//     db.collection.find({type: "MEME_TYPE"}).toArray(function(err, docs) {
+//         if (err) return err;
+//         docs.forEach(meme => {
+//             urlExists(meme.url, function(err, exists) {
+//                 if (exists) {
+//                     console.log('you good')
+//                     return;
+//                 } else {
+//                     console.log('prepare to die')
+//                     db.collection.deleteOne({_id: Object(meme._id)})
+//                 }
+//             })
+//         })
+//     })
+// }, 10000)
