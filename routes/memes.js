@@ -16,7 +16,7 @@ router.post('/', authHelper.checkAuth, function(req,res,next) {
     if (err) return next(err);
     var xferMemes = {
       type: "MEME_TYPE",
-      date: Date.now(),
+      date: new Date(Date.now()),
       upvote: 0,
       downvote: 0,
       total: 0,
@@ -98,6 +98,7 @@ router.get('/:id/weeklybest', authHelper.checkAuth, function(req,res,next){
   //   res.status(200).json(docs);
   // });
 
+
   var next_page = req.query.next;
   if(next_page && next_page > 1) {
     req.db.collection.find({type: "MEME_TYPE", date: {$lt: new Date(), $gte: new Date(new Date().setDate(new Date().getDate()-7))}}).sort({upvote: -1, downvote: 1}).skip(next_page - 1).limit(5).toArray(function(err,docs){
@@ -120,6 +121,7 @@ router.get('/:id', authHelper.checkAuth, function(req,res,next){
   //   if (err) return next(err);
   //   res.status(200).json(docs);
   // });
+
       req.db.collection.aggregate([
         {$match: {type: "MEME_TYPE", userChecked: {$in: [req.body.userSub]}}},
         {$sample: {size: 5}},
@@ -158,6 +160,8 @@ router.put('/:id/upvote', authHelper.checkAuth, function(req,res,next) {
     memeId: joi.string().max(300).required(),
     userSub: joi.string().max(300).required()
   };
+  console.log(req.body)
+  console.log(req.params.id)
 joi.validate(req.body, schema, function(err) {
   if(err) {
     return next(err)
