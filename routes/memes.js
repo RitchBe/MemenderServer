@@ -50,13 +50,13 @@ router.get('/:id/bestofalltime', authHelper.checkAuth, function(req,res,next){
 
   var next_page = req.query.next;
     if (next_page && next_page > 1) {
-      req.db.collection.find({type: "MEME_TYPE", userChecked: {$nin: [req.params.id]}}
+      req.db.collection.find({type: "MEME_TYPE"}
       ).sort({upvote: -1 , downvote: 1}).skip(next_page - 1).limit(5).toArray(function(err, docs) {
         if (err) return next(err);
         res.status(200).json(docs)
       })
     } else {
-      req.db.collection.find({type: "MEME_TYPE", userChecked: {$nin: [req.params.id]}}
+      req.db.collection.find({type: "MEME_TYPE"}
       ).sort({upvote: -1 , downvote: 1}).limit(5).toArray(function(err, docs) {
         if (err) return next(err);
         res.status(200).json(docs)
@@ -79,12 +79,12 @@ router.get('/:id/monthlybest', authHelper.checkAuth, function(req,res,next){
     // })
   var next_page = req.query.next;
   if(next_page && next_page > 1) {
-    req.db.collection.find({type: "MEME_TYPE",userChecked: {$nin: [req.params.id]}, date: {$lt: new Date(), $gte: new Date(new Date().setDate(new Date().getDate()-31))}}).sort({upvote: -1, downvote: 1}).skip(next_page - 1).limit(5).toArray(function(err,docs){
+    req.db.collection.find({type: "MEME_TYPE", date: {$lt: new Date(), $gte: new Date(new Date().setDate(new Date().getDate()-31))}}).sort({upvote: -1, downvote: 1}).skip(next_page - 1).limit(5).toArray(function(err,docs){
       if (err) return next(err);
       res.status(200).json(docs)
     })
   } else {
-    req.db.collection.find({type: "MEME_TYPE", userChecked: {$nin: [req.params.id]}, date: {$lt: new Date(), $gte: new Date(new Date().setDate(new Date().getDate()-31))}}).sort({upvote: -1, downvote: 1}).limit(5).toArray(function(err,docs){
+    req.db.collection.find({type: "MEME_TYPE", date: {$lt: new Date(), $gte: new Date(new Date().setDate(new Date().getDate()-31))}}).sort({upvote: -1, downvote: 1}).limit(5).toArray(function(err,docs){
       if (err) return next(err);
       res.status(200).json(docs)
     })
@@ -101,12 +101,12 @@ router.get('/:id/weeklybest', authHelper.checkAuth, function(req,res,next){
 
   var next_page = req.query.next;
   if(next_page && next_page > 1) {
-    req.db.collection.find({type: "MEME_TYPE", userChecked: {$nin: [req.params.id]}, date: {$lt: new Date(), $gte: new Date(new Date().setDate(new Date().getDate()-7))}}).sort({upvote: -1, downvote: 1}).skip(next_page - 1).limit(5).toArray(function(err,docs){
+    req.db.collection.find({type: "MEME_TYPE", date: {$lt: new Date(), $gte: new Date(new Date().setDate(new Date().getDate()-7))}}).sort({upvote: -1, downvote: 1}).skip(next_page - 1).limit(5).toArray(function(err,docs){
       if (err) return next(err);
       res.status(200).json(docs)
     })
   } else {
-    req.db.collection.find({type: "MEME_TYPE", userChecked: {$nin: [req.params.id]}, date: {$lt: new Date(), $gte: new Date(new Date().setDate(new Date().getDate()-7))}}).sort({upvote: -1, downvote: 1}).limit(5).toArray(function(err,docs){
+    req.db.collection.find({type: "MEME_TYPE", date: {$lt: new Date(), $gte: new Date(new Date().setDate(new Date().getDate()-7))}}).sort({upvote: -1, downvote: 1}).limit(5).toArray(function(err,docs){
       if (err) return next(err);
       res.status(200).json(docs)
     })
